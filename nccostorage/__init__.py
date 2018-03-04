@@ -28,6 +28,8 @@ async def add_ncco_to_bucket(request):
 
     buckets: BucketOperations = request.app['buckets']
     bucket = await buckets.lookup(bucket_id)
+    if bucket is None:
+        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
 
     ncco = await request.json()
     try:
@@ -50,6 +52,8 @@ async def lookup_ncco(request):
 
     buckets: BucketOperations = request.app['buckets']
     bucket = await buckets.lookup(bucket_id)
+    if bucket is None:
+        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
 
     ncco_id = request.match_info['ncco_id']
     ncco = await bucket.lookup(ncco_id)
@@ -70,6 +74,8 @@ async def remove_ncco(request):
 
     buckets: BucketOperations = request.app['buckets']
     bucket = await buckets.lookup(bucket_id)
+    if bucket is None:
+        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
 
     ncco_id = request.match_info['ncco_id']
     await bucket.remove(ncco_id)

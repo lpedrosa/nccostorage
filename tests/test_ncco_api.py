@@ -17,6 +17,12 @@ async def test_lookup_unknown_ncco(app_client):
 
     assert resp.status == 404
 
+async def test_lookup_ncco_non_existing_bucket(app_client):
+    bucket_id = 'test_bucket'
+    ncco_id = 'some_id'
+    resp = await app_client.get(f'/bucket/{bucket_id}/ncco/{ncco_id}')
+
+    assert resp.status == 404
 
 async def test_add_ncco_response(app_client):
     bucket_id = 'test_bucket'
@@ -33,6 +39,12 @@ async def test_add_ncco_response(app_client):
     assert body.get('ncco_id') is not None
     assert body.get('ncco') == ncco
 
+async def test_add_ncco_non_existing_bucket(app_client):
+    bucket_id = 'test_bucket'
+    ncco = [{"action": "record"}]
+    resp = await app_client.post(f'/bucket/{bucket_id}/ncco', json=ncco)
+
+    assert resp.status == 404
 
 async def test_remove_ncco_response(app_client):
     bucket_id = 'test_bucket'
@@ -43,3 +55,11 @@ async def test_remove_ncco_response(app_client):
     resp = await app_client.delete(f'/bucket/{bucket_id}/ncco/{ncco_id}')
 
     assert resp.status == 204
+
+async def test_remove_ncco_non_existing_bucket(app_client):
+    bucket_id = 'test_bucket'
+    ncco_id = 'some_id'
+
+    resp = await app_client.delete(f'/bucket/{bucket_id}/ncco/{ncco_id}')
+
+    assert resp.status == 404
