@@ -104,7 +104,7 @@ def requires_json(handler):
 def create_app(args, loop=None):
     app = web.Application(loop=loop)
 
-    storage = DictionaryStorage()
+    storage = DictionaryStorage(loop=loop)
     app['bucket_ops'] = BucketOperations(storage)
 
     app.router.add_get('/', index)
