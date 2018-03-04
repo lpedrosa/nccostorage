@@ -17,8 +17,8 @@ async def create_bucket(request):
     if bucket_name is None:
         return error_response(status=400, text="missing 'id' in request body")
 
-    bucket_ops: BucketOperations = request.app['bucket_ops']
-    await bucket_ops.create(bucket_name)
+    buckets: BucketOperations = request.app['buckets']
+    await buckets.create(bucket_name)
 
     return web.Response(status=204)
 
@@ -26,8 +26,8 @@ async def create_bucket(request):
 async def add_ncco_to_bucket(request):
     bucket_id = request.match_info['bucket_id']
 
-    bucket_ops: BucketOperations = request.app['bucket_ops']
-    bucket = await bucket_ops.lookup(bucket_id)
+    buckets: BucketOperations = request.app['buckets']
+    bucket = await buckets.lookup(bucket_id)
 
     ncco = await request.json()
     try:
@@ -48,8 +48,8 @@ async def add_ncco_to_bucket(request):
 async def lookup_ncco(request):
     bucket_id = request.match_info['bucket_id']
 
-    bucket_ops: BucketOperations = request.app['bucket_ops']
-    bucket = await bucket_ops.lookup(bucket_id)
+    buckets: BucketOperations = request.app['buckets']
+    bucket = await buckets.lookup(bucket_id)
 
     ncco_id = request.match_info['ncco_id']
     ncco = await bucket.lookup(ncco_id)
@@ -68,8 +68,8 @@ async def lookup_ncco(request):
 async def remove_ncco(request):
     bucket_id = request.match_info['bucket_id']
 
-    bucket_ops: BucketOperations = request.app['bucket_ops']
-    bucket = await bucket_ops.lookup(bucket_id)
+    buckets: BucketOperations = request.app['buckets']
+    bucket = await buckets.lookup(bucket_id)
 
     ncco_id = request.match_info['ncco_id']
     await bucket.remove(ncco_id)
@@ -104,7 +104,7 @@ def create_app(args, loop=None):
     app = web.Application(loop=loop)
 
     storage = DictionaryBucketStorage(loop=loop)
-    app['bucket_ops'] = BucketOperations(storage)
+    app['buckets'] = BucketOperations(storage)
 
     app.router.add_get('/', index)
 
