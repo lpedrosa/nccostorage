@@ -8,59 +8,98 @@ def _bucket_key_for(name):
     return f'bucket_{name}'
 
 
+class BucketStorageError(Exception):
+    pass
+
+class DictionaryBucketStorage(object):
+
+    def __init__(self, loop=None):
+        self._store = {}
+        self._lock = locks.Lock(loop=loop)
+
+    async def create(self, name, ttl=DEFAULT_TTL):
+        bucket_data = dict()
+        key = _bucket_key_for(name)
+
+        async with self._lock:
+            if key in self._store:
+                raise BucketStorageError(f'duplicate bucket {name}')
+            self._store[key] = bucket_data
+
+        return name
+
+    async def exists(self, name):
+        key = _bucket_key_for(name)
+        async with self._lock:
+            return key in self._store
+
+    async def remove(self, name):
+        bucket_key = _bucket_key_for(name)
+        async with self._lock:
+            if bucket_key not in self._store:
+                return None
+            del self._store[bucket_key]
+
+        return name
+
+    async def add_ncco(self, name, ncco):
+        async with self._lock:
+            bucket_data = self._store.get(_bucket_key_for(name))
+
+            if bucket_data is None:
+                raise BucketStorageError(f'non-existing bucket {name}')
+
+            ncco_id = str(uuid())
+            bucket_data[ncco_id] = ncco
+
+            return ncco_id
+
+    async def get_ncco(self, name, ncco_id):
+        async with self._lock:
+            bucket_data = self._store.get(_bucket_key_for(name))
+            if bucket_data is None:
+                raise BucketStorageError(f'non-existing bucket {name}')
+
+            return bucket_data.get(ncco_id)
+
+    async def remove_ncco(self, name, ncco_id):
+        async with self._lock:
+            bucket_data = self._store.get(_bucket_key_for(name))
+            if bucket_data is None:
+                raise BucketStorageError(f'non-existing bucket {name}')
+
+            return bucket_data.pop(ncco_id, None)
+
 class BucketOperations(object):
 
     def __init__(self, storage):
         self.storage = storage
 
     async def create(self, name, ttl=DEFAULT_TTL):
-        bucket_data = dict()
-        await self.storage.write_if_absent(_bucket_key_for(name), bucket_data)
-        return Bucket(name, self)
-
-    async def lookup(self, name):
-        bucket = await self.storage.lookup(_bucket_key_for(name))
-        if bucket is None:
+        try:
+            await self.storage.create(name, ttl=ttl)
+        except BucketStorageError:
             return None
 
-        return Bucket(name, self)
+        return Bucket(name, self.storage)
 
-    async def add_ncco(self, bucket_name, ncco, ttl=DEFAULT_TTL):
-        ncco_id = str(uuid())
+    async def lookup(self, name):
+        if await self.storage.exists(name):
+            return Bucket(name, self.storage)
 
-        def update_func(bucket_data, ncco):
-            bucket_data[ncco_id] = ncco
-            return bucket_data
-
-        key_name = _bucket_key_for(bucket_name)
-        await self.storage.update(key_name, ncco, update_func)
-        return ncco_id
-
-    async def remove_ncco(self, bucket_name, ncco_id):
-        def update_func(bucket_data, _):
-            bucket_data.pop(ncco_id, None)
-            return bucket_data
-
-        key_name = _bucket_key_for(bucket_name)
-        await self.storage.update(key_name, None, update_func)
-
-    async def lookup_ncco(self, bucket_name, ncco_id):
-        key_name = _bucket_key_for(bucket_name)
-        bucket_data = await self.storage.read(key_name)
-        ncco = bucket_data.get(ncco_id)
-        return ncco
+        return None
 
 class Bucket(object):
 
-    def __init__(self, name, bucket_operations: BucketOperations):
+    def __init__(self, name, storage):
         self.name = name
-        self.buckets = bucket_operations
+        self.storage = storage
 
-    async def add(self, ncco, **kwargs):
-        return await self.buckets.add_ncco(self.name, ncco, kwargs)
+    async def add(self, ncco):
+        return await self.storage.add_ncco(self.name, ncco)
 
     async def remove(self, ncco_id):
-        await self.buckets.remove_ncco(self.name, ncco_id)
+        return await self.storage.remove_ncco(self.name, ncco_id)
 
     async def lookup(self, ncco_id):
-        return await self.buckets.lookup_ncco(self.name, ncco_id)
+        return await self.storage.get_ncco(self.name, ncco_id)

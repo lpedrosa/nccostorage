@@ -2,9 +2,8 @@ import json
 
 from aiohttp import web
 
-from nccostorage.bucket import BucketOperations
+from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 from nccostorage.ncco import validate
-from nccostorage.storage import DictionaryStorage
 
 
 async def index(request):
@@ -104,7 +103,7 @@ def requires_json(handler):
 def create_app(args, loop=None):
     app = web.Application(loop=loop)
 
-    storage = DictionaryStorage(loop=loop)
+    storage = DictionaryBucketStorage(loop=loop)
     app['bucket_ops'] = BucketOperations(storage)
 
     app.router.add_get('/', index)
