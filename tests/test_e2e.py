@@ -5,7 +5,8 @@ from nccostorage import create_app
 
 
 async def test_simple_storage_and_retrieval(test_client):
-    client = await test_client(create_app)
+    config = {}
+    client = await test_client(create_app(config))
 
     bucket_name = 'test_bucket'
 

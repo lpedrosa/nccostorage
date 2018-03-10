@@ -1,11 +1,24 @@
 import pytest
 
-from nccostorage import create_app
+from aiohttp import web
+from nccostorage.api import setup_bucket_api, setup_ncco_api
+from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
+
+
+def setup_dummy_app(loop):
+    app = web.Application(loop=loop)
+    storage = DictionaryBucketStorage(loop=loop)
+    app['buckets'] = BucketOperations(storage)
+
+    setup_bucket_api(app)
+    setup_ncco_api(app)
+    return app
 
 
 @pytest.fixture
 def app_client(loop, test_client):
-    return loop.run_until_complete(test_client(create_app))
+    app = setup_dummy_app(loop)
+    return loop.run_until_complete(test_client(app))
 
 
 async def test_lookup_unknown_ncco(app_client):
