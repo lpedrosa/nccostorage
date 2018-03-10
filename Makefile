@@ -8,7 +8,7 @@ else
 endif
 
 run:
-	python -m aiohttp.web nccostorage:create_app
+	python run.py
 
 test:
 	python setup.py test

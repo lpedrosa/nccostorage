@@ -3,10 +3,21 @@ import aiohttp
 from nccostorage import create_app
 
 
-if __name__ == '__main__':
-    options = {
-        'host': '127.0.0.1',
+def read_config():
+    server_config = {
+        'host': '0.0.0.0',
         'port': 8080
     }
+    return {
+        'server': server_config,
+        'loop': None,
+    }
 
-    aiohttp.web.run_app(create_app(()), **options)
+
+if __name__ == '__main__':
+    config = read_config()
+    app = create_app(config)
+
+    aiohttp.web.run_app(app,
+                        host=config['server']['host'],
+                        port=config['server']['port'])

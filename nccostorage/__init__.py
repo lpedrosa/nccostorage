@@ -106,10 +106,10 @@ def requires_json(handler):
     return middleware
 
 
-def create_app(args, loop=None):
-    app = web.Application(loop=loop)
+def create_app(config):
+    app = web.Application(loop=config['loop'])
 
-    storage = DictionaryBucketStorage(loop=loop)
+    storage = DictionaryBucketStorage(loop=config['loop'])
     app['buckets'] = BucketOperations(storage)
 
     app.router.add_get('/', index)
