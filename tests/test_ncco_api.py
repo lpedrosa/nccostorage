@@ -8,10 +8,10 @@ from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 def setup_dummy_app(loop):
     app = web.Application(loop=loop)
     storage = DictionaryBucketStorage(loop=loop)
-    app['buckets'] = BucketOperations(storage)
+    buckets = BucketOperations(storage)
 
-    setup_bucket_api(app)
-    setup_ncco_api(app)
+    setup_bucket_api(app, buckets)
+    setup_ncco_api(app, buckets)
     return app
 
 

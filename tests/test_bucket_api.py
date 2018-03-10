@@ -8,8 +8,8 @@ from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 def setup_dummy_app(loop):
     app = web.Application(loop=loop)
     storage = DictionaryBucketStorage(loop=loop)
-    app['buckets'] = BucketOperations(storage)
-    return setup_bucket_api(app)
+    buckets = BucketOperations(storage)
+    return setup_bucket_api(app, buckets)
 
 
 @pytest.fixture

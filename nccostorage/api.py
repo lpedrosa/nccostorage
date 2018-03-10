@@ -1,7 +1,7 @@
 import json
 
 from aiohttp import web
-from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
+from nccostorage.bucket import BucketOperations
 from nccostorage.ncco import validate
 
 
@@ -100,14 +100,24 @@ def requires_json(handler):
     return middleware
 
 
-def setup_bucket_api(app):
+def setup_bucket_api(app, buckets):
+    _wire_bucket_operations(app, buckets)
+
     app.router.add_post('/bucket', requires_json(create_bucket))
 
     return app
 
-def setup_ncco_api(app):
+
+def setup_ncco_api(app, buckets):
+    _wire_bucket_operations(app, buckets)
+
     app.router.add_post('/bucket/{bucket_id}/ncco', add_ncco_to_bucket)
     app.router.add_get('/bucket/{bucket_id}/ncco/{ncco_id}', lookup_ncco)
     app.router.add_delete('/bucket/{bucket_id}/ncco/{ncco_id}', remove_ncco)
 
     return app
+
+
+def _wire_bucket_operations(app, buckets):
+    if app.get('buckets') is None:
+        app['buckets'] = buckets
