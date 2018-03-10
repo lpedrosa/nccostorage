@@ -14,17 +14,33 @@ def error_response(status=None, text=None):
     return web.Response(status=status, text=body, content_type=content_type)
 
 
+def validate_ttl(ttl):
+    if ttl is None or ttl < 60:
+        return 60
+    elif ttl > 86400:
+        return 86400
+    else:
+        return ttl
+
+
 async def create_bucket(request):
     body = await request.json()
     bucket_name = body.get('id')
+    ttl = validate_ttl(body.get('ttl'))
 
     if bucket_name is None:
         return error_response(status=400, text="missing 'id' in request body")
 
     buckets: BucketOperations = request.app['buckets']
-    await buckets.create(bucket_name)
+    bucket = await buckets.create(bucket_name, ttl=ttl)
+    if bucket is None:
+        return error_response(status=409, text=f'bucket with id {bucket_name} already exists')
 
-    return web.Response(status=204)
+    res_body = {
+        'id': bucket_name,
+        'ttl': ttl
+    }
+    return web.Response(status=201, text=json.dumps(res_body), content_type='application/json')
 
 
 async def add_ncco_to_bucket(request):

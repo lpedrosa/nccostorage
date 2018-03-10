@@ -35,6 +35,39 @@ async def test_create_bucket_invalid_request(app_client):
 
 
 async def test_create_bucket_success(app_client):
+    bucket_id = 'my_bucket'
+    bucket_ttl = 360
+    resp = await app_client.post('/bucket', json={'id': bucket_id, 'ttl': bucket_ttl})
+    assert resp.status == 201
+    body = await resp.json()
+    assert body['id'] == bucket_id
+    assert body['ttl'] == bucket_ttl
+
+
+async def test_create_bucket_ttl_range(app_client):
+    ttl_test_ranges = [
+        ('min_ttl', 10, 60),
+        ('max_ttl', 99999, 86400),
+        ('no_ttl', None, 60),
+    ]
+
+    for bucket_id, ttl, expected_ttl in ttl_test_ranges:
+        req_body = dict()
+        req_body['id'] = bucket_id
+        if ttl is not None:
+            req_body['ttl'] = ttl
+
+        resp = await app_client.post('/bucket', json=req_body)
+        assert resp.status == 201
+
+        body = await resp.json()
+        assert body['id'] == bucket_id
+        assert body['ttl'] == expected_ttl, f'unexpected ttl for {bucket_id}'
+
+
+async def test_create_bucket_already_exists(app_client):
     resp = await app_client.post('/bucket', json={'id': 'my_bucket'})
-    assert resp.status == 204
+    assert resp.status == 201
+    resp = await app_client.post('/bucket', json={'id': 'my_bucket'})
+    assert resp.status == 409
 

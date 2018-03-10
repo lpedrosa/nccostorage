@@ -75,7 +75,8 @@ class BucketOperations(object):
     def __init__(self, storage):
         self.storage = storage
 
-    async def create(self, name, ttl=DEFAULT_TTL):
+    async def create(self, name, ttl=None):
+        ttl = ttl or DEFAULT_TTL
         try:
             await self.storage.create(name, ttl=ttl)
         except BucketStorageError:

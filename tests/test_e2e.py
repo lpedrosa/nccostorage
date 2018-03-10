@@ -42,7 +42,7 @@ async def test_simple_storage_and_retrieval(test_client):
 async def create_bucket(app_client, bucket_name):
     resp = await app_client.post('/bucket', json={'id': bucket_name})
 
-    assert resp.status == 204
+    assert resp.status == 201
 
 async def store_ncco(app_client, bucket_name, ncco):
     resp = await app_client.post(f'/bucket/{bucket_name}/ncco', json=ncco)
