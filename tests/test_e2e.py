@@ -45,7 +45,7 @@ async def create_bucket(app_client, bucket_name):
     assert resp.status == 201
 
 async def store_ncco(app_client, bucket_name, ncco):
-    resp = await app_client.post(f'/bucket/{bucket_name}/ncco', json=ncco)
+    resp = await app_client.post(f'/bucket/{bucket_name}/ncco', json={'ncco': ncco})
 
     assert resp.status == 201
 

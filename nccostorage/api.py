@@ -2,7 +2,6 @@ import json
 
 from aiohttp import web
 from nccostorage.bucket import BucketOperations
-from nccostorage.ncco import validate
 
 
 def error_response(status=None, text=None):
@@ -51,11 +50,11 @@ async def add_ncco_to_bucket(request):
     if bucket is None:
         return error_response(status=404, text=f'bucket with id {bucket_id} not found')
 
-    ncco = await request.json()
-    try:
-        ncco = validate(ncco)
-    except Exception:
-        return web.Response(status=400, text='Failed to validate NCCO')
+    body = await request.json()
+
+    ncco = body.get('ncco')
+    if ncco is None:
+        return error_response(status=400, text="missing 'ncco' in request body")
 
     ncco_id = await bucket.add(ncco)
 
