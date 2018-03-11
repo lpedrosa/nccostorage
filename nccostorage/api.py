@@ -97,7 +97,8 @@ async def remove_ncco(request):
         return error_response(status=404, text=f'bucket with id {bucket_id} not found')
 
     ncco_id = request.match_info['ncco_id']
-    await bucket.remove(ncco_id)
+    if await bucket.remove(ncco_id) is None:
+        return error_response(status=404, text=f'ncco with id {ncco_id} not found')
 
     return web.Response(status=204)
 

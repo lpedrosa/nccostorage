@@ -80,7 +80,7 @@ async def test_add_ncco_invalid_body(app_client):
 ################
 # Remove Tests #
 ################
-async def test_remove_ncco_response(app_client):
+async def test_remove_non_existing_ncco(app_client):
     bucket_id = 'test_bucket'
     await app_client.post('/bucket', json={'id': bucket_id})
 
@@ -88,7 +88,7 @@ async def test_remove_ncco_response(app_client):
 
     resp = await app_client.delete(f'/bucket/{bucket_id}/ncco/{ncco_id}')
 
-    assert resp.status == 204
+    assert resp.status == 404
 
 async def test_remove_ncco_non_existing_bucket(app_client):
     bucket_id = 'test_bucket'
@@ -97,3 +97,20 @@ async def test_remove_ncco_non_existing_bucket(app_client):
     resp = await app_client.delete(f'/bucket/{bucket_id}/ncco/{ncco_id}')
 
     assert resp.status == 404
+
+async def test_remove_ncco_response(app_client):
+    bucket_id = 'test_bucket'
+    await app_client.post('/bucket', json={'id': bucket_id})
+
+    ncco = [{"action": "record"}]
+    req_body = {'ncco': ncco}
+
+    resp = await app_client.post(f'/bucket/{bucket_id}/ncco', json=req_body)
+    assert resp.status == 201
+
+    body = await resp.json()
+    ncco_id = body['ncco_id']
+
+    resp = await app_client.delete(f'/bucket/{bucket_id}/ncco/{ncco_id}')
+
+    assert resp.status == 204
