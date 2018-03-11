@@ -2,6 +2,7 @@ import json
 
 from aiohttp import web
 from nccostorage.bucket import BucketOperations, DuplicateBucketError
+from nccostorage.renderer import RenderError
 
 
 def error_response(status=None, text=None):
@@ -57,11 +58,12 @@ async def add_ncco_to_bucket(request):
     if ncco is None:
         return error_response(status=400, text="missing 'ncco' in request body")
 
-    ncco_id = await bucket.add(ncco)
+    ncco_str = str(ncco)
+    ncco_id = await bucket.add(ncco_str)
 
     res_body = {
         'ncco_id': ncco_id,
-        'ncco': ncco
+        'ncco': ncco_str
     }
 
     return web.Response(status=201, text=json.dumps(res_body), content_type='application/json')
@@ -104,6 +106,36 @@ async def remove_ncco(request):
     return web.Response(status=204)
 
 
+async def render_ncco(request):
+    bucket_id = request.match_info['bucket_id']
+
+    buckets: BucketOperations = request.app['buckets']
+    bucket = await buckets.lookup(bucket_id)
+    if bucket is None:
+        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
+
+    ncco_id = request.match_info['ncco_id']
+    ncco = await bucket.lookup(ncco_id)
+
+    if ncco is None:
+        return error_response(status=404, text=f'ncco with id {ncco_id} not found')
+
+    ncco_renderer = request.app['ncco_renderer']
+    query_params = request.query
+
+    try:
+        result = ncco_renderer.render(ncco, query_params)
+    except RenderError:
+        return error_response(status=400, text=f'missing params while rendering ncco with id {ncco_id}')
+
+    try:
+        resp = json.loads(result)
+    except json.decoder.JSONDecodeError:
+        return error_response(status=400, text=f'rendered ncco is not valid json')
+
+    return web.Response(status=200, text=json.dumps(resp), content_type='application/json')
+
+
 def requires_json(handler):
     async def middleware(request):
         if request.content_type != 'application/json':
@@ -125,12 +157,14 @@ def setup_bucket_api(app, buckets):
     return app
 
 
-def setup_ncco_api(app, buckets):
+def setup_ncco_api(app, buckets, ncco_renderer):
     _wire_bucket_operations(app, buckets)
+    app['ncco_renderer'] = ncco_renderer
 
     app.router.add_post('/bucket/{bucket_id}/ncco', add_ncco_to_bucket)
     app.router.add_get('/bucket/{bucket_id}/ncco/{ncco_id}', lookup_ncco)
     app.router.add_delete('/bucket/{bucket_id}/ncco/{ncco_id}', remove_ncco)
+    app.router.add_get('/bucket/{bucket_id}/ncco/{ncco_id}/render', render_ncco)
 
     return app
 

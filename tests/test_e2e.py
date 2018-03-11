@@ -12,7 +12,7 @@ async def test_simple_storage_and_retrieval(test_client):
 
     await create_bucket(client, bucket_name)
 
-    test_ncco = [{
+    test_ncco = """[{
         "action": "connect",
         "eventUrl": ["https://example.com/events"],
         "from":"447700900000",
@@ -20,7 +20,7 @@ async def test_simple_storage_and_retrieval(test_client):
             "type": "phone",
             "number": "447700900001"
         }]
-    }]
+    }]"""
 
     ncco_id = await store_ncco(client, bucket_name, test_ncco)
 
