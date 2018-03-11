@@ -1,7 +1,7 @@
 import json
 
 from aiohttp import web
-from nccostorage.bucket import BucketOperations
+from nccostorage.bucket import BucketOperations, DuplicateBucketError
 
 
 def error_response(status=None, text=None):
@@ -31,8 +31,9 @@ async def create_bucket(request):
         return error_response(status=400, text="missing 'id' in request body")
 
     buckets: BucketOperations = request.app['buckets']
-    bucket = await buckets.create(bucket_name, ttl=ttl)
-    if bucket is None:
+    try:
+        await buckets.create(bucket_name, ttl=ttl)
+    except DuplicateBucketError:
         return error_response(status=409, text=f'bucket with id {bucket_name} already exists')
 
     res_body = {

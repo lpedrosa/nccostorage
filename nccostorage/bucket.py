@@ -11,6 +11,11 @@ def _bucket_key_for(name):
 class BucketStorageError(Exception):
     pass
 
+
+class DuplicateBucketError(BucketStorageError):
+    pass
+
+
 class DictionaryBucketStorage(object):
 
     def __init__(self, loop=None):
@@ -23,7 +28,7 @@ class DictionaryBucketStorage(object):
 
         async with self._lock:
             if key in self._store:
-                raise BucketStorageError(f'duplicate bucket {name}')
+                raise DuplicateBucketError(f'duplicate bucket {name}')
             self._store[key] = bucket_data
 
         return name
@@ -77,10 +82,7 @@ class BucketOperations(object):
 
     async def create(self, name, ttl=None):
         ttl = ttl or DEFAULT_TTL
-        try:
-            await self.storage.create(name, ttl=ttl)
-        except BucketStorageError:
-            return None
+        await self.storage.create(name, ttl=ttl)
 
         return Bucket(name, self.storage)
 
