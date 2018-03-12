@@ -8,10 +8,10 @@ else
 endif
 
 run:
-	python run.py
+	pipenv run python run.py
 
 test:
-	python -m pytest
+	pipenv run python -m pytest
 
 clean:
 	$(RM) *.egg-info
