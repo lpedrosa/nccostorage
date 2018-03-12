@@ -9,12 +9,6 @@ def read_requirements(file):
         contents = f.readlines()
     return contents
 
-
-tests_require = [
-    'pytest==3.3.1',
-    'pytest-aiohttp==0.3.0',
-]
-
 setup(
     name='nccostorage',
     version='1.0',
@@ -23,6 +17,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=read_requirements('requirements.txt'),
-    setup_requires=['pytest-runner'],
-    tests_require=tests_require,
+    setup_requires=['pytest-runner<=3.0.1'],
+    tests_require=read_requirements('requirements-test.txt'),
 )
