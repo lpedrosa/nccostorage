@@ -11,11 +11,11 @@ run:
 	python run.py
 
 test:
-	python setup.py test
+	python -m pytest
 
 clean:
 	$(RM) *.egg-info
-	$(RM) *.eggs
+	$(RM) .eggs
 
 
 .PHONY: run test clean

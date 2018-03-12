@@ -1,4 +1,0 @@
--r requirements.txt
--r requirements-test.txt
-
-pylint==1.8.2
