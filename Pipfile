@@ -1,15 +1,22 @@
 [[source]]
+
 url = "https://pypi.python.org/simple"
-verify_ssl = true
+verify_ssl = false
+
 
 [packages]
+
+"jinja2" = "==2.10"
 aiohttp = "==3.0.7"
-Jinja2 = "==2.10"
+
 
 [dev-packages]
-pylint = "*"
+
 pytest = "==3.3.1"
-"pytest-aiohttp" = "==0.3.0"
+pytest-aiohttp = "*"
+pylint = "*"
+
 
 [requires]
+
 python_version = "3.6"
