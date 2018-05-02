@@ -8,6 +8,7 @@ verify_ssl = false
 
 "jinja2" = "==2.10"
 aiohttp = "==3.0.7"
+"prometheus_async[aiohttp]" = "*"
 
 
 [dev-packages]

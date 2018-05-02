@@ -1,6 +1,9 @@
 import asyncio.locks as locks
 from uuid import uuid4 as uuid
 
+from prometheus_client import Gauge
+
+
 DEFAULT_TTL = 86400
 
 
@@ -74,6 +77,44 @@ class DictionaryBucketStorage(object):
                 raise BucketStorageError(f'non-existing bucket {name}')
 
             return bucket_data.pop(ncco_id, None)
+
+
+class InstrumentedBucketStorage(object):
+
+    # pylint: disable-msg=no-value-for-parameter
+    LIVE_BUCKETS = Gauge('bucket_count', 'number of live buckets in storage')
+    # pylint: disable-msg=no-value-for-parameter
+    LIVE_NCCOS = Gauge('ncco_count', 'number of live nccos in storage')
+
+    def __init__(self, storage):
+        self.storage = storage
+
+    async def create(self, name, ttl=DEFAULT_TTL):
+        result = await self.storage.create(name, ttl)
+        InstrumentedBucketStorage.LIVE_BUCKETS.inc()
+        return result
+
+    async def exists(self, name):
+        return await self.storage.exists(name)
+
+    async def remove(self, name):
+        result = await self.storage.remove(name)
+        InstrumentedBucketStorage.LIVE_BUCKETS.dec()
+        return result
+
+    async def add_ncco(self, name, ncco):
+        result = await self.storage.add_ncco(name, ncco)
+        InstrumentedBucketStorage.LIVE_NCCOS.inc()
+        return result
+
+    async def get_ncco(self, name, ncco_id):
+        return await self.storage.get_ncco(name, ncco_id)
+
+    async def remove_ncco(self, name, ncco_id):
+        result = await self.storage.remove_ncco(name, ncco_id)
+        InstrumentedBucketStorage.LIVE_NCCOS.dec()
+        return result
+
 
 class BucketOperations(object):
 

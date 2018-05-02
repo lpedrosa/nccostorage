@@ -1,9 +1,10 @@
 import json
 
 from aiohttp import web
+from prometheus_async import aio
 
 from nccostorage import api
-from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
+from nccostorage.bucket import BucketOperations, DictionaryBucketStorage, InstrumentedBucketStorage
 from nccostorage.renderer import Jinja2NccoRenderer
 
 
@@ -12,7 +13,7 @@ def create_app(config):
 
     app = web.Application(loop=loop)
 
-    storage = DictionaryBucketStorage(loop=loop)
+    storage = InstrumentedBucketStorage(DictionaryBucketStorage(loop=loop))
     buckets = BucketOperations(storage)
     ncco_renderer = Jinja2NccoRenderer()
 
@@ -20,5 +21,7 @@ def create_app(config):
     api.setup_bucket_api(app, buckets)
     # ncco operations
     api.setup_ncco_api(app, buckets, ncco_renderer)
+
+    app.router.add_get('/metrics', aio.web.server_stats)
 
     return app
