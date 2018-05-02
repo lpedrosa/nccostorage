@@ -3,6 +3,8 @@ from uuid import uuid4 as uuid
 
 from prometheus_client import Gauge
 
+from nccostorage.util import Observable
+
 
 DEFAULT_TTL = 86400
 
@@ -19,11 +21,21 @@ class DuplicateBucketError(BucketStorageError):
     pass
 
 
+class BucketStorageEventManager(object):
+
+    def __init__(self):
+        self.on_bucket_created = Observable()
+        self.on_bucket_deleted = Observable()
+        self.on_ncco_created = Observable()
+        self.on_ncco_deleted = Observable()
+
+
 class DictionaryBucketStorage(object):
 
     def __init__(self, loop=None):
         self._store = {}
         self._lock = locks.Lock(loop=loop)
+        self.event_manager = BucketStorageEventManager()
 
     async def create(self, name, ttl=DEFAULT_TTL):
         bucket_data = dict()
@@ -33,6 +45,7 @@ class DictionaryBucketStorage(object):
             if key in self._store:
                 raise DuplicateBucketError(f'duplicate bucket {name}')
             self._store[key] = bucket_data
+            self.event_manager.on_bucket_created()
 
         return name
 
@@ -47,6 +60,7 @@ class DictionaryBucketStorage(object):
             if bucket_key not in self._store:
                 return None
             del self._store[bucket_key]
+            self.event_manager.on_bucket_deleted()
 
         return name
 
@@ -59,6 +73,7 @@ class DictionaryBucketStorage(object):
 
             ncco_id = str(uuid())
             bucket_data[ncco_id] = ncco
+            self.event_manager.on_ncco_created()
 
             return ncco_id
 
@@ -76,44 +91,8 @@ class DictionaryBucketStorage(object):
             if bucket_data is None:
                 raise BucketStorageError(f'non-existing bucket {name}')
 
+            self.event_manager.on_ncco_deleted()
             return bucket_data.pop(ncco_id, None)
-
-
-class InstrumentedBucketStorage(object):
-
-    # pylint: disable-msg=no-value-for-parameter
-    LIVE_BUCKETS = Gauge('bucket_count', 'number of live buckets in storage')
-    # pylint: disable-msg=no-value-for-parameter
-    LIVE_NCCOS = Gauge('ncco_count', 'number of live nccos in storage')
-
-    def __init__(self, storage):
-        self.storage = storage
-
-    async def create(self, name, ttl=DEFAULT_TTL):
-        result = await self.storage.create(name, ttl)
-        InstrumentedBucketStorage.LIVE_BUCKETS.inc()
-        return result
-
-    async def exists(self, name):
-        return await self.storage.exists(name)
-
-    async def remove(self, name):
-        result = await self.storage.remove(name)
-        InstrumentedBucketStorage.LIVE_BUCKETS.dec()
-        return result
-
-    async def add_ncco(self, name, ncco):
-        result = await self.storage.add_ncco(name, ncco)
-        InstrumentedBucketStorage.LIVE_NCCOS.inc()
-        return result
-
-    async def get_ncco(self, name, ncco_id):
-        return await self.storage.get_ncco(name, ncco_id)
-
-    async def remove_ncco(self, name, ncco_id):
-        result = await self.storage.remove_ncco(name, ncco_id)
-        InstrumentedBucketStorage.LIVE_NCCOS.dec()
-        return result
 
 
 class BucketOperations(object):
@@ -132,6 +111,7 @@ class BucketOperations(object):
             return Bucket(name, self.storage)
 
         return None
+
 
 class Bucket(object):
 
