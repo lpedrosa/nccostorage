@@ -1,8 +1,6 @@
 import asyncio.locks as locks
 from uuid import uuid4 as uuid
 
-from prometheus_client import Gauge
-
 from nccostorage.util import Observable
 
 
@@ -21,23 +19,16 @@ class DuplicateBucketError(BucketStorageError):
     pass
 
 
-class BucketStorageEventManager(object):
-
-    def __init__(self):
-        self.on_bucket_created = Observable()
-        self.on_bucket_deleted = Observable()
-        self.on_ncco_created = Observable()
-        self.on_ncco_deleted = Observable()
-
-
 class DictionaryBucketStorage(object):
 
     def __init__(self, loop=None):
         self._store = {}
         self._lock = locks.Lock(loop=loop)
-        self.event_manager = BucketStorageEventManager()
 
-    async def create(self, name, ttl=DEFAULT_TTL):
+    async def create(self, name, ttl=None):
+        if ttl is None:
+            ttl = DEFAULT_TTL
+
         bucket_data = dict()
         key = _bucket_key_for(name)
 
@@ -45,7 +36,6 @@ class DictionaryBucketStorage(object):
             if key in self._store:
                 raise DuplicateBucketError(f'duplicate bucket {name}')
             self._store[key] = bucket_data
-            self.event_manager.on_bucket_created()
 
         return name
 
@@ -60,38 +50,35 @@ class DictionaryBucketStorage(object):
             if bucket_key not in self._store:
                 return None
             del self._store[bucket_key]
-            self.event_manager.on_bucket_deleted()
 
         return name
 
-    async def add_ncco(self, name, ncco):
+    async def add_ncco(self, bucket_name, ncco):
         async with self._lock:
-            bucket_data = self._store.get(_bucket_key_for(name))
+            bucket_data = self._store.get(_bucket_key_for(bucket_name))
 
             if bucket_data is None:
-                raise BucketStorageError(f'non-existing bucket {name}')
+                raise BucketStorageError(f'non-existing bucket {bucket_name}')
 
             ncco_id = str(uuid())
             bucket_data[ncco_id] = ncco
-            self.event_manager.on_ncco_created()
 
             return ncco_id
 
-    async def get_ncco(self, name, ncco_id):
+    async def get_ncco(self, bucket_name, ncco_id):
         async with self._lock:
-            bucket_data = self._store.get(_bucket_key_for(name))
+            bucket_data = self._store.get(_bucket_key_for(bucket_name))
             if bucket_data is None:
-                raise BucketStorageError(f'non-existing bucket {name}')
+                raise BucketStorageError(f'non-existing bucket {bucket_name}')
 
             return bucket_data.get(ncco_id)
 
-    async def remove_ncco(self, name, ncco_id):
+    async def remove_ncco(self, bucket_name, ncco_id):
         async with self._lock:
-            bucket_data = self._store.get(_bucket_key_for(name))
+            bucket_data = self._store.get(_bucket_key_for(bucket_name))
             if bucket_data is None:
-                raise BucketStorageError(f'non-existing bucket {name}')
+                raise BucketStorageError(f'non-existing bucket {bucket_name}')
 
-            self.event_manager.on_ncco_deleted()
             return bucket_data.pop(ncco_id, None)
 
 
