@@ -1,16 +1,24 @@
 import asyncio
-import aiohttp
+import argparse
 import collections
 import os
 import uuid
 
+import aiohttp
 
 Config = collections.namedtuple('Config', ['url', 'read_concurrency', 'runs', 'load_rate'])
 
 
 def read_config():
-    url = os.getenv('LOAD_TARGET', 'http://localhost:8080')
-    return Config(url=url, read_concurrency=10, runs=100, load_rate=2.0)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--target', help='target url of the load test', default='http://localhost:8080')
+    parser.add_argument('--read_concurrency', type=int, help='number of concurrent reader', default=10)
+    parser.add_argument('--runs', type=int, help='number of times single test is run', default=100)
+    parser.add_argument('--rate', type=float, help='time in seconds to wait before firing the next test', default=2.0)
+
+    args = parser.parse_args()
+
+    return Config(url=args.target, read_concurrency=args.read_concurrency, runs=args.runs, load_rate=args.rate)
 
 
 async def read_ncco(session, url, bucket_id, ncco_id):
@@ -43,7 +51,7 @@ async def load_job(session, url, read_concurrency):
     await asyncio.gather(*outstanding)
 
     # delete bucket
-    print(f'Would delete bucket {bucket_id}')
+    # print(f'Would delete bucket {bucket_id}')
 
 
 async def run_test(config):
