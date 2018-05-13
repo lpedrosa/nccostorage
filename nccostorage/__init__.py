@@ -7,6 +7,7 @@ from nccostorage import api
 from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 from nccostorage.bucket.instrumentation import InstrumentedBucketStorage
 from nccostorage.renderer import Jinja2NccoRenderer
+from nccostorage.renderer.instrumentation import InstrumentedRenderer
 
 
 def create_app(config):
@@ -16,7 +17,7 @@ def create_app(config):
 
     storage = InstrumentedBucketStorage(DictionaryBucketStorage(loop=loop))
     buckets = BucketOperations(storage)
-    ncco_renderer = Jinja2NccoRenderer()
+    ncco_renderer = InstrumentedRenderer(Jinja2NccoRenderer())
 
     # bucket operations
     api.setup_bucket_api(app, buckets)
