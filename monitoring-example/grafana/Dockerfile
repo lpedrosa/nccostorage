@@ -1,4 +1,4 @@
 FROM grafana/grafana:5.1.1
 
-ADD ./dashboards /etc/grafana/dashboards
-ADD ./provisioning /etc/grafana/provisioning
+COPY ./dashboards /etc/grafana/dashboards
+COPY ./provisioning /etc/grafana/provisioning
