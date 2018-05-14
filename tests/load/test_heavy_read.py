@@ -51,7 +51,7 @@ async def load_job(session, url, read_concurrency):
     await asyncio.gather(*outstanding)
 
     # delete bucket
-    # print(f'Would delete bucket {bucket_id}')
+    await session.delete(f'{url}/bucket/{bucket_id}')
 
 
 async def run_test(config):

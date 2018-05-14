@@ -34,6 +34,10 @@ async def test_simple_storage_and_retrieval(test_client):
 
     assert resp.status == 404
 
+    resp = await client.delete(f'/bucket/{bucket_name}')
+
+    assert resp.status == 204
+
 
 #
 # Helpers
