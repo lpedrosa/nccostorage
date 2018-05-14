@@ -40,9 +40,14 @@ class InstrumentedBucketStorage(object):
     async def remove(self, name):
         UPDATE_REQUEST.inc()
         with UPDATE_ERROR.count_exceptions():
-            result = await self._storage.remove(name)
-            LIVE_BUCKETS.dec()
-            return result
+            bucket_info = await self._storage.remove(name)
+            if bucket_info is not None:
+                LIVE_BUCKETS.dec()
+                nccos_deleted = len(bucket_info)
+                # terrible way to decrement the ncco count
+                for _ in range(nccos_deleted):
+                    LIVE_NCCOS.dec()
+            return bucket_info
 
     @time(UPDATE_TIME)
     async def add_ncco(self, bucket_name, ncco):

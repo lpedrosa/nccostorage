@@ -47,11 +47,9 @@ class DictionaryBucketStorage(object):
     async def remove(self, name):
         bucket_key = _bucket_key_for(name)
         async with self._lock:
-            if bucket_key not in self._store:
-                return None
-            del self._store[bucket_key]
+            ncco_data = self._store.pop(bucket_key, None)
 
-        return name
+        return ncco_data
 
     async def add_ncco(self, bucket_name, ncco):
         async with self._lock:
@@ -82,6 +80,16 @@ class DictionaryBucketStorage(object):
             return bucket_data.pop(ncco_id, None)
 
 
+class BucketInfo(object):
+
+    def __init__(self, name, nccos):
+        self.name = name
+        self.nccos = nccos
+
+    def __len__(self):
+        return len(self.nccos)
+
+
 class BucketOperations(object):
 
     def __init__(self, storage):
@@ -100,10 +108,13 @@ class BucketOperations(object):
         return None
 
     async def remove(self, name):
-        if await self.storage.remove(name) is None:
+        ncco_data = await self.storage.remove(name)
+
+        if ncco_data is None:
             return None
 
-        return name
+        return BucketInfo(name, ncco_data)
+
 
 class Bucket(object):
 
