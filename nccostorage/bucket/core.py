@@ -99,6 +99,11 @@ class BucketOperations(object):
 
         return None
 
+    async def remove(self, name):
+        if await self.storage.remove(name) is None:
+            return None
+
+        return name
 
 class Bucket(object):
 

@@ -71,3 +71,18 @@ async def test_create_bucket_already_exists(app_client):
     resp = await app_client.post('/bucket', json={'id': 'my_bucket'})
     assert resp.status == 409
 
+
+async def test_delete_bucket_not_existing(app_client):
+    non_existing_bucket_id = 'idontexist'
+    resp = await app_client.delete(f'/bucket/{non_existing_bucket_id}')
+    assert resp.status == 404
+
+
+async def test_delete_bucket_success(app_client):
+    bucket_id = 'my_bucket'
+    bucket_ttl = 360
+    resp = await app_client.post('/bucket', json={'id': bucket_id, 'ttl': bucket_ttl})
+    assert resp.status == 201
+
+    resp = await app_client.delete(f'/bucket/{bucket_id}')
+    assert resp.status == 204

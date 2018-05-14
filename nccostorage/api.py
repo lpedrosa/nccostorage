@@ -44,6 +44,17 @@ async def create_bucket(request):
     return web.Response(status=201, text=json.dumps(res_body), content_type='application/json')
 
 
+async def remove_bucket(request):
+    bucket_id = request.match_info['bucket_id']
+
+    buckets: BucketOperations = request.app['buckets']
+    bucket_name = await buckets.remove(bucket_id)
+    if bucket_name is None:
+        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
+
+    return web.Response(status=204)
+
+
 async def add_ncco_to_bucket(request):
     bucket_id = request.match_info['bucket_id']
 
@@ -153,6 +164,7 @@ def setup_bucket_api(app, buckets):
     _wire_bucket_operations(app, buckets)
 
     app.router.add_post('/bucket', requires_json(create_bucket))
+    app.router.add_delete('/bucket/{bucket_id}', remove_bucket)
 
     return app
 
