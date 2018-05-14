@@ -14,6 +14,4 @@ COPY ./nccostorage ./nccostorage
 # fetch deps
 RUN pipenv install --deploy --system
 
-EXPOSE 8080/tcp
-
 CMD ["python", "run.py"]
