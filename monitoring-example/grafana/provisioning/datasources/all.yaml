@@ -9,4 +9,3 @@ datasources:
   jsonData:
     timeInterval: 5s
   version: 1
-
