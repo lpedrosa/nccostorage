@@ -1,6 +1,6 @@
 import pytest
-
 from aiohttp import web
+
 from nccostorage.api import setup_bucket_api, setup_ncco_api
 from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 from nccostorage.renderer import Jinja2NccoRenderer
@@ -159,6 +159,7 @@ async def test_remove_non_existing_ncco(app_client):
 
     assert resp.status == 404
 
+
 async def test_remove_ncco_non_existing_bucket(app_client):
     bucket_id = 'test_bucket'
     ncco_id = 'some_id'
@@ -166,6 +167,7 @@ async def test_remove_ncco_non_existing_bucket(app_client):
     resp = await app_client.delete(f'/bucket/{bucket_id}/ncco/{ncco_id}')
 
     assert resp.status == 404
+
 
 async def test_remove_ncco_response(app_client):
     bucket_id = 'test_bucket'

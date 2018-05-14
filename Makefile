@@ -13,9 +13,13 @@ run:
 test:
 	pipenv run python -m pytest
 
+lint:
+	pipenv run flake8
+
+check: lint test
+
 clean:
 	$(RM) *.egg-info
 	$(RM) .eggs
 
-
-.PHONY: run test clean
+.PHONY: run test lint check clean

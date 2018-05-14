@@ -48,6 +48,7 @@ async def create_bucket(app_client, bucket_name):
 
     assert resp.status == 201
 
+
 async def store_ncco(app_client, bucket_name, ncco):
     resp = await app_client.post(f'/bucket/{bucket_name}/ncco', json={'ncco': ncco})
 
@@ -60,6 +61,7 @@ async def store_ncco(app_client, bucket_name, ncco):
 
     return ncco_id
 
+
 async def lookup_ncco(app_client, bucket_name, ncco_id):
     resp = await app_client.get(f'/bucket/{bucket_name}/ncco/{ncco_id}')
 
@@ -68,6 +70,7 @@ async def lookup_ncco(app_client, bucket_name, ncco_id):
     resp_body = await resp.json()
 
     return resp_body.get('ncco')
+
 
 async def remove_ncco(app_client, bucket_name, ncco_id):
     resp = await app_client.delete(f'/bucket/{bucket_name}/ncco/{ncco_id}')

@@ -1,5 +1,3 @@
-import json
-
 from aiohttp import web
 from prometheus_async import aio
 

@@ -1,6 +1,5 @@
-from prometheus_async.aio import count_exceptions, time
+from prometheus_async.aio import time
 from prometheus_client import Counter, Gauge, Histogram
-
 
 # pylint: disable-msg=no-value-for-parameter
 LIVE_BUCKETS = Gauge('live_buckets', 'number of live buckets in storage')

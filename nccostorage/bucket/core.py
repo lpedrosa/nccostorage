@@ -1,9 +1,6 @@
 import asyncio.locks as locks
 from uuid import uuid4 as uuid
 
-from nccostorage.util import Observable
-
-
 DEFAULT_TTL = 86400
 
 

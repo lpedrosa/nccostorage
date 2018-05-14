@@ -1,6 +1,6 @@
 import pytest
-
 from aiohttp import web
+
 from nccostorage.api import setup_bucket_api
 from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 

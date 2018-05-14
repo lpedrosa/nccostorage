@@ -1,7 +1,6 @@
-import asyncio
 import argparse
+import asyncio
 import collections
-import os
 import uuid
 
 import aiohttp

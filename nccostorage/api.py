@@ -1,6 +1,7 @@
 import json
 
 from aiohttp import web
+
 from nccostorage.bucket import BucketOperations, DuplicateBucketError
 from nccostorage.renderer import RenderError
 

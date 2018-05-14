@@ -1,6 +1,4 @@
-from prometheus_async.aio import count_exceptions, time
-from prometheus_client import Counter, Gauge, Histogram
-
+from prometheus_client import Counter, Histogram
 
 # pylint: disable-msg=no-value-for-parameter
 TEMPLATE_REQUEST = Counter('template_count', 'template method call rate')
