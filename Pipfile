@@ -8,14 +8,14 @@ verify_ssl = false
 
 "jinja2" = "==2.10"
 aiohttp = "==3.0.7"
-"prometheus_async[aiohttp]" = "*"
+"prometheus-async[aiohttp]" = "*"
 
 
 [dev-packages]
 
 pytest = "==3.3.1"
 pytest-aiohttp = "*"
-pylint = "*"
+"flake8" = "*"
 
 
 [requires]
