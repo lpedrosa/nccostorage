@@ -4,15 +4,7 @@ from aiohttp import web
 
 from nccostorage.bucket import BucketOperations, DuplicateBucketError
 from nccostorage.renderer import RenderError
-
-
-def error_response(status=None, text=None):
-    if not 399 < status < 600:
-        raise ValueError('status must be a valid HTTP error code')
-
-    body = json.dumps({'status': 'error', 'text': text})
-    content_type = 'application/json'
-    return web.Response(status=status, text=body, content_type=content_type)
+from nccostorage.util import error_response
 
 
 def validate_ttl(ttl):
@@ -153,11 +145,8 @@ def requires_json(handler):
         if request.content_type != 'application/json':
             return error_response(status=400, text='request body must be json')
 
-        # TODO(lpedrosa): this should be an exception handler middleware
-        try:
-            return await handler(request)
-        except json.decoder.JSONDecodeError:
-            return error_response(status=400, text='request body must be json')
+        return await handler(request)
+
     return middleware
 
 
