@@ -10,7 +10,6 @@ from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 from nccostorage.bucket.instrumentation import InstrumentedBucketStorage
 from nccostorage.renderer import Jinja2NccoRenderer
 from nccostorage.renderer.instrumentation import InstrumentedRenderer
-from nccostorage.util import error_response
 
 
 def configure_logging():
@@ -33,7 +32,7 @@ def setup_middlewares(app):
     import json
 
     error_middleware = middleware.create_error_handler({
-        json.decoder.JSONDecodeError: error_response(status=400, text='request body must be json')
+        json.decoder.JSONDecodeError: {'code': 400, 'json': {'status': 'error', 'text': 'request body must be json'}}
     })
 
     app.middlewares.append(error_middleware)
