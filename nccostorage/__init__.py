@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from aiohttp import web
+from aiohttp import web, web_exceptions
 from prometheus_async import aio
 
 from nccostorage import api, middleware
@@ -30,8 +30,18 @@ def configure_logging():
 def setup_middlewares(app):
     import json
 
+    def handle_json_error(_ex):
+        err = api.error.ApiError(status=400, text='request body must be json')
+        return api.error.to_response(err)
+
+    def handle_web_error(web_error: web_exceptions.HTTPError):
+        err = api.error.ApiError(status=web_error.status_code, text=web_error.text)
+        return api.error.to_response(err)
+
     error_middleware = middleware.create_error_handler({
-        json.decoder.JSONDecodeError: {'code': 400, 'json': {'status': 'error', 'text': 'request body must be json'}}
+        json.decoder.JSONDecodeError: handle_json_error,
+        api.error.ApiError: api.error.to_response,
+        web_exceptions.HTTPError: handle_web_error,
     })
 
     app.middlewares.append(error_middleware)

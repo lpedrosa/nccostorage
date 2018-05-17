@@ -2,9 +2,9 @@ import json
 
 from aiohttp import web
 
+from nccostorage.api import error
 from nccostorage.bucket import BucketOperations
 from nccostorage.renderer import RenderError
-from nccostorage.util import error_response
 
 
 async def add_ncco_to_bucket(request):
@@ -13,13 +13,13 @@ async def add_ncco_to_bucket(request):
     buckets: BucketOperations = request.app['buckets']
     bucket = await buckets.lookup(bucket_id)
     if bucket is None:
-        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
+        raise error.ApiError(status=404, text=f'bucket with id {bucket_id} not found')
 
     body = await request.json()
 
     ncco = body.get('ncco')
     if ncco is None:
-        return error_response(status=400, text="missing 'ncco' in request body")
+        raise error.ApiError(status=400, text="missing 'ncco' in request body")
 
     ncco_str = str(ncco)
     ncco_id = await bucket.add(ncco_str)
@@ -38,13 +38,13 @@ async def lookup_ncco(request):
     buckets: BucketOperations = request.app['buckets']
     bucket = await buckets.lookup(bucket_id)
     if bucket is None:
-        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
+        raise error.ApiError(status=404, text=f'bucket with id {bucket_id} not found')
 
     ncco_id = request.match_info['ncco_id']
     ncco = await bucket.lookup(ncco_id)
 
     if ncco is None:
-        return error_response(status=404, text=f'ncco with id {ncco_id} not found')
+        raise error.ApiError(status=404, text=f'ncco with id {ncco_id} not found')
 
     res_body = {
         'ncco_id': ncco_id,
@@ -60,11 +60,11 @@ async def remove_ncco(request):
     buckets: BucketOperations = request.app['buckets']
     bucket = await buckets.lookup(bucket_id)
     if bucket is None:
-        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
+        raise error.ApiError(status=404, text=f'bucket with id {bucket_id} not found')
 
     ncco_id = request.match_info['ncco_id']
     if await bucket.remove(ncco_id) is None:
-        return error_response(status=404, text=f'ncco with id {ncco_id} not found')
+        raise error.ApiError(status=404, text=f'ncco with id {ncco_id} not found')
 
     return web.Response(status=204)
 
@@ -75,13 +75,13 @@ async def render_ncco(request):
     buckets: BucketOperations = request.app['buckets']
     bucket = await buckets.lookup(bucket_id)
     if bucket is None:
-        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
+        raise error.ApiError(status=404, text=f'bucket with id {bucket_id} not found')
 
     ncco_id = request.match_info['ncco_id']
     ncco = await bucket.lookup(ncco_id)
 
     if ncco is None:
-        return error_response(status=404, text=f'ncco with id {ncco_id} not found')
+        raise error.ApiError(status=404, text=f'ncco with id {ncco_id} not found')
 
     ncco_renderer = request.app['ncco_renderer']
     query_params = request.query
@@ -89,12 +89,12 @@ async def render_ncco(request):
     try:
         result = ncco_renderer.render(ncco, query_params)
     except RenderError:
-        return error_response(status=400, text=f'missing params while rendering ncco with id {ncco_id}')
+        raise error.ApiError(status=400, text=f'missing params while rendering ncco with id {ncco_id}')
 
     try:
         resp = json.loads(result)
     except json.decoder.JSONDecodeError:
-        return error_response(status=400, text=f'rendered ncco is not valid json')
+        raise error.ApiError(status=400, text=f'rendered ncco is not valid json')
 
     return web.Response(status=200, text=json.dumps(resp), content_type='application/json')
 

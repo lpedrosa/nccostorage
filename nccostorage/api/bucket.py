@@ -2,9 +2,9 @@ import json
 
 from aiohttp import web
 
+from nccostorage.api import error
 from nccostorage.bucket import BucketOperations, DuplicateBucketError
 from nccostorage.middleware import requires_json
-from nccostorage.util import error_response
 
 
 def _validate_ttl(ttl):
@@ -22,13 +22,13 @@ async def create_bucket(request):
     ttl = _validate_ttl(body.get('ttl'))
 
     if bucket_name is None:
-        return error_response(status=400, text="missing 'id' in request body")
+        raise error.ApiError(status=400, text="missing 'id' in request body")
 
     buckets: BucketOperations = request.app['buckets']
     try:
         await buckets.create(bucket_name, ttl=ttl)
     except DuplicateBucketError:
-        return error_response(status=409, text=f'bucket with id {bucket_name} already exists')
+        raise error.ApiError(status=409, text=f'bucket with id {bucket_name} already exists')
 
     res_body = {
         'id': bucket_name,
@@ -43,7 +43,7 @@ async def remove_bucket(request):
     buckets: BucketOperations = request.app['buckets']
     bucket_name = await buckets.remove(bucket_id)
     if bucket_name is None:
-        return error_response(status=404, text=f'bucket with id {bucket_id} not found')
+        raise error.ApiError(status=404, text=f'bucket with id {bucket_id} not found')
 
     return web.Response(status=204)
 
