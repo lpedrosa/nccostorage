@@ -1,8 +1,7 @@
 import pytest
 from aiohttp import web
 
-from nccostorage import setup_middlewares
-from nccostorage.api import setup_bucket_api
+from nccostorage import api, setup_middlewares
 from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 
 
@@ -10,7 +9,7 @@ def setup_dummy_app(loop):
     app = web.Application(loop=loop)
     storage = DictionaryBucketStorage(loop=loop)
     buckets = BucketOperations(storage)
-    setup_bucket_api(app, buckets)
+    api.bucket.setup_routes(app, buckets)
     setup_middlewares(app)
     return app
 

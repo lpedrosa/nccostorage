@@ -1,7 +1,7 @@
 import pytest
 from aiohttp import web
 
-from nccostorage.api import setup_bucket_api, setup_ncco_api
+from nccostorage import api
 from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 from nccostorage.renderer import Jinja2NccoRenderer
 
@@ -12,8 +12,8 @@ def setup_dummy_app(loop):
     buckets = BucketOperations(storage)
     ncco_renderer = Jinja2NccoRenderer()
 
-    setup_bucket_api(app, buckets)
-    setup_ncco_api(app, buckets, ncco_renderer)
+    api.bucket.setup_routes(app, buckets)
+    api.ncco.setup_routes(app, buckets, ncco_renderer)
     return app
 
 

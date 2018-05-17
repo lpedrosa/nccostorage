@@ -23,3 +23,13 @@ def create_error_handler(mappings):
             return response
 
     return error_handler
+
+
+def requires_json(handler):
+    async def middleware(request):
+        if request.content_type != 'application/json':
+            return web.json_response({'status': 'error', 'text': 'request body must be json'}, status=400)
+
+        return await handler(request)
+
+    return middleware
