@@ -1,6 +1,8 @@
 # NCCOStorage
 
-Simple service that allows hosting NCCOs over a period of time and basic templating.
+Simple service that allows hosting [NCCOs](https://developer.nexmo.com/voice/voice-api/ncco-reference) over a period of time and basic templating.
+
+If you want to know more on how NCCOs can be used, check out nexmo's [Voice API Overview](https://developer.nexmo.com/voice/voice-api/overview)
 
 ## Getting started
 
