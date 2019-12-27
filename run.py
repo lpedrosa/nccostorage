@@ -10,7 +10,6 @@ def read_config():
     }
     return {
         'server': server_config,
-        'loop': None,
     }
 
 

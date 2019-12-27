@@ -48,13 +48,11 @@ def setup_middlewares(app):
 
 
 def create_app(config):
-    loop = config.get('loop', None)
-
     configure_logging()
 
-    app = web.Application(loop=loop)
+    app = web.Application()
 
-    storage = InstrumentedBucketStorage(DictionaryBucketStorage(loop=loop))
+    storage = InstrumentedBucketStorage(DictionaryBucketStorage())
     buckets = BucketOperations(storage)
     ncco_renderer = InstrumentedRenderer(Jinja2NccoRenderer())
 

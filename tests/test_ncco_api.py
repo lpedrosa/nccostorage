@@ -6,9 +6,9 @@ from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 from nccostorage.renderer import Jinja2NccoRenderer
 
 
-def setup_dummy_app(loop):
-    app = web.Application(loop=loop)
-    storage = DictionaryBucketStorage(loop=loop)
+def setup_dummy_app():
+    app = web.Application()
+    storage = DictionaryBucketStorage()
     buckets = BucketOperations(storage)
     ncco_renderer = Jinja2NccoRenderer()
 
@@ -19,9 +19,9 @@ def setup_dummy_app(loop):
 
 
 @pytest.fixture
-def app_client(loop, test_client):
-    app = setup_dummy_app(loop)
-    return loop.run_until_complete(test_client(app))
+def app_client(loop, aiohttp_client):
+    app = setup_dummy_app()
+    return loop.run_until_complete(aiohttp_client(app))
 
 
 ################

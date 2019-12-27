@@ -4,9 +4,9 @@ Application end to end scenarios
 from nccostorage import create_app
 
 
-async def test_simple_storage_and_retrieval(test_client):
+async def test_simple_storage_and_retrieval(aiohttp_client):
     config = {}
-    client = await test_client(create_app(config))
+    client = await aiohttp_client(create_app(config))
 
     bucket_name = 'test_bucket'
 

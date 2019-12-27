@@ -5,9 +5,9 @@ from nccostorage import api, setup_middlewares
 from nccostorage.bucket import BucketOperations, DictionaryBucketStorage
 
 
-def setup_dummy_app(loop):
-    app = web.Application(loop=loop)
-    storage = DictionaryBucketStorage(loop=loop)
+def setup_dummy_app():
+    app = web.Application()
+    storage = DictionaryBucketStorage()
     buckets = BucketOperations(storage)
     api.bucket.setup_routes(app, buckets)
     setup_middlewares(app)
@@ -15,9 +15,10 @@ def setup_dummy_app(loop):
 
 
 @pytest.fixture
-def app_client(loop, test_client):
-    app = setup_dummy_app(loop)
-    return loop.run_until_complete(test_client(app))
+def app_client(loop, aiohttp_client):
+    app = setup_dummy_app()
+    # return asyncio.run(test_client(app))
+    return loop.run_until_complete(aiohttp_client(app))
 
 
 async def test_create_bucket_bad_json_request(app_client):

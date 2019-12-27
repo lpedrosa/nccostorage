@@ -18,9 +18,9 @@ class DuplicateBucketError(BucketStorageError):
 
 class DictionaryBucketStorage(object):
 
-    def __init__(self, loop=None):
+    def __init__(self):
         self._store = {}
-        self._lock = locks.Lock(loop=loop)
+        self._lock = locks.Lock()
 
     async def create(self, name, ttl=None):
         if ttl is None:
